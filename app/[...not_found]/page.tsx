@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 export const dynamic = "force-dynamic";
+import { Suspense } from "react"
 export default function NotFound() {
   useEffect(() => {
     // You can add analytics tracking here if needed
