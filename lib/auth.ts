@@ -27,7 +27,6 @@ export function getTokenFromUrl(): string | null {
   return null
 }
 
-// AWS Cognito login URL
 export const COGNITO_LOGIN_URL =
   "https://us-east-1bx7ooefmj.auth.us-east-1.amazoncognito.com/login/continue?client_id=6nvepr4r2tcl8010phg1pbmd5f&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=aws.cognito.signin.user.admin+email+openid"
 
