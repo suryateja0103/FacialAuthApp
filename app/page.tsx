@@ -3,11 +3,12 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import ProtectedRoute from "@/components/protected-route"
 import TokenHandler from "@/components/token-handler"
-
+import { Suspense } from "react"
 export default function Home() {
   const router = useRouter()
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <>
       <TokenHandler />
       <ProtectedRoute>
@@ -27,9 +28,12 @@ export default function Home() {
               Authenticate Image
             </Button>
           </div>
+
         </main>
       </ProtectedRoute>
+      
     </>
+    </ Suspense>
   )
 }
 
