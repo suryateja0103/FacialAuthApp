@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import ProtectedRoute from "@/components/protected-route"
 import TokenHandler from "@/components/token-handler"
 import { Suspense } from "react"
+export const dynamic = "force-dynamic";
 export default function Home() {
   const router = useRouter()
 
