@@ -1,11 +1,12 @@
 "use client"
-
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { COGNITO_LOGIN_URL } from "@/lib/auth"
 import { useAuth } from "@/components/auth-provider"
+
+export const dynamic = "force-dynamic"; // 👈 Add this!
 
 export default function LoginPage() {
   const router = useRouter()
@@ -45,4 +46,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

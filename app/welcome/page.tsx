@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = "force-dynamic"; // 👈 Add this to prevent prerendering
+
 import { useSearchParams } from "next/navigation"
 import ProtectedRoute from "@/components/protected-route"
 
@@ -18,4 +20,3 @@ export default function WelcomePage() {
     </ProtectedRoute>
   )
 }
-

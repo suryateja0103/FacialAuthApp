@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = "force-dynamic"; // 👈 ADD THIS LINE
+
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import ProtectedRoute from "@/components/protected-route"
@@ -9,6 +11,9 @@ type Todo = {
   task: string
   completed: boolean
 }
+
+// ...rest of your component stays the same
+
 
 export default function TodoPage() {
   const searchParams = useSearchParams()
