@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic"; // 👈 ADD THIS LINE
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import ProtectedRoute from "@/components/protected-route"
+import { Suspense } from "react"
 
 type Todo = {
   id: string
@@ -16,6 +17,7 @@ type Todo = {
 
 
 export default function TodoPage() {
+  
   const searchParams = useSearchParams()
   const userId = `${searchParams.get("firstName")}.${searchParams.get("lastName")}`
 
@@ -74,6 +76,7 @@ export default function TodoPage() {
   }
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <ProtectedRoute>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Hello {userId}, your To-Do List 📝</h1>
@@ -108,6 +111,7 @@ export default function TodoPage() {
         </ul>
       </div>
     </ProtectedRoute>
+    </Suspense> 
   )
 }
 

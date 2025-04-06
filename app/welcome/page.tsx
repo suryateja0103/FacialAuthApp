@@ -1,7 +1,7 @@
 "use client"
 
 export const dynamic = "force-dynamic"; // 👈 Add this to prevent prerendering
-
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import ProtectedRoute from "@/components/protected-route"
 
@@ -11,6 +11,7 @@ export default function WelcomePage() {
   const lastName = searchParams.get("lastName")
 
   return (
+       <Suspense fallback={<div>Loading...</div>}>
     <ProtectedRoute>
       <main className="flex items-center justify-center h-[calc(100vh-64px)]">
         <h2 className="text-4xl font-bold text-black-700">
@@ -18,5 +19,6 @@ export default function WelcomePage() {
         </h2>
       </main>
     </ProtectedRoute>
+    </Suspense>
   )
 }
