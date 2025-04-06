@@ -1,19 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 export const dynamic = "force-dynamic";
-import { Suspense } from "react"
-export default function NotFound() {
+
+function NotFoundContent() {
   useEffect(() => {
-    // You can add analytics tracking here if needed
     console.log('Not found page visited');
   }, []);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-             
-           
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-md">
         <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
@@ -31,6 +27,13 @@ export default function NotFound() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NotFound() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NotFoundContent />
     </Suspense>
   );
 }
