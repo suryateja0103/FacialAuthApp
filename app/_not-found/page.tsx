@@ -1,16 +1,19 @@
-'use client'
+'use client';
 
-import { useEffect, Suspense } from 'react'
-import Link from 'next/link'
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import Link from 'next/link';
 
-// Force dynamic rendering to prevent static prerendering issues
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
+// Prevents this page from being statically generated
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
-function NotFoundContent() {
+export default function NotFound() {
+  const searchParams = useSearchParams();
+
   useEffect(() => {
-    console.log('Not found page visited')
-  }, [])
+    console.log('404 page visited with query:', searchParams?.toString());
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
@@ -18,25 +21,15 @@ function NotFoundContent() {
         <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
         <div className="text-7xl mb-8">🔍</div>
         <p className="text-lg mb-6">
-          We couldn't find the page you're looking for. The page may have been moved, deleted, or never existed.
+          We couldn't find the page you're looking for. It might have been moved or never existed.
         </p>
-        <div className="space-y-4">
-          <Link 
-            href="/"
-            className="inline-block px-6 py-3 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
-          >
-            Return to Home
-          </Link>
-        </div>
+        <Link
+          href="/"
+          className="inline-block px-6 py-3 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+        >
+          Return to Home
+        </Link>
       </div>
     </div>
-  )
-}
-
-export default function NotFound() {
-  return (
-    <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
-      <NotFoundContent />
-    </Suspense>
-  )
+  );
 }
