@@ -1,4 +1,5 @@
-"use client"
+'use client'
+
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -6,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { COGNITO_LOGIN_URL } from "@/lib/auth"
 import { useAuth } from "@/components/auth-provider"
 import { Suspense } from "react"
-export const dynamic = "force-dynamic"; // 👈 Add this!
 
-export default function LoginPage() {
+export const dynamic = "force-dynamic"
+
+function LoginContent() {
   const router = useRouter()
   const { isAuthenticated, loading } = useAuth()
 
@@ -31,7 +33,6 @@ export default function LoginPage() {
   }
 
   return (
-       <Suspense fallback={<div>Loading...</div>}>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -45,6 +46,13 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
     </Suspense>
   )
 }
