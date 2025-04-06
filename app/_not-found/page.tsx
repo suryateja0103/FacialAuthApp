@@ -2,7 +2,10 @@
 
 import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
-export const dynamic = "force-dynamic";
+
+// Prevents static pre-rendering issues
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 function NotFoundContent() {
   useEffect(() => {
@@ -32,7 +35,7 @@ function NotFoundContent() {
 
 export default function NotFound() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
       <NotFoundContent />
     </Suspense>
   );
