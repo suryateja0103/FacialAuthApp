@@ -11,6 +11,9 @@ export default function NotFound() {
   }, []);
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
+             
+           
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-md">
         <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
@@ -28,5 +31,6 @@ export default function NotFound() {
         </div>
       </div>
     </div>
+    </Suspense>
   );
 }
