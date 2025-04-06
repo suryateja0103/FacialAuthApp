@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useEffect, Suspense } from 'react';
-import Link from 'next/link';
+import { useEffect, Suspense } from 'react'
+import Link from 'next/link'
 
-// Prevents static pre-rendering issues
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+// Force dynamic rendering to prevent static prerendering issues
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 function NotFoundContent() {
   useEffect(() => {
-    console.log('Not found page visited');
-  }, []);
+    console.log('Not found page visited')
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
@@ -30,7 +30,7 @@ function NotFoundContent() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export default function NotFound() {
@@ -38,5 +38,5 @@ export default function NotFound() {
     <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
       <NotFoundContent />
     </Suspense>
-  );
+  )
 }
