@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { clearAuthCookie, getTokenFromUrl, isAuthenticated, setAuthCookie } from "@/lib/auth"
 
 interface AuthContextType {
@@ -25,7 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Check if token exists in URL (after Cognito redirect)
@@ -50,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false)
-  }, [pathname, router, searchParams])
+  }, [pathname, router])
 
   const logout = () => {
     clearAuthCookie()
@@ -58,6 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/login")
   }
 
-  return <AuthContext.Provider value={{ isAuthenticated: isAuth, logout, loading }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ isAuthenticated: isAuth, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
-
