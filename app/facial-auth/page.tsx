@@ -4,13 +4,13 @@ import { Suspense } from "react"
 export const dynamic = "force-dynamic";
 export default function FacialAuthPage() {
   return (
-    <ProtectedRoute>
+    
       <main className="min-h-screen">
       <Suspense fallback={<div>Loading...</div>}>
         <FacialAuthApp />
         </Suspense>
       </main>
-    </ProtectedRoute>
+    
   )
 }
 
