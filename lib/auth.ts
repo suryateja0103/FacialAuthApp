@@ -28,4 +28,4 @@ export function getTokenFromUrl(): string | null {
 }
 
 export const COGNITO_LOGIN_URL =
-  "https://us-east-1bx7ooefmj.auth.us-east-1.amazoncognito.com/login?client_id=6nvepr4r2tcl8010phg1pbmd5f&redirect_uri=http://localhost:3000&response_type=code&scope=aws.cognito.signin.user.admin+email+openid"
+  "https://us-east-1bx7ooefmj.auth.us-east-1.amazoncognito.com/login?client_id=6nvepr4r2tcl8010phg1pbmd5f&redirect_uri=https://main.d3gk4lrwo7dgvt.amplifyapp.com&response_type=code&scope=aws.cognito.signin.user.admin+email+openid"
