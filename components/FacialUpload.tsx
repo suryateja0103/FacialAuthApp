@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -19,9 +21,11 @@ export default function FacialAuthApp() {
   const [isCaptured, setIsCaptured] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const dropZoneRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -113,6 +117,64 @@ export default function FacialAuthApp() {
     }
   }
 
+  // Handle drag and drop functionality
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0]
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          if (event.target && typeof event.target.result === "string") {
+            setPreview(event.target.result)
+            setIsCaptured(true)
+            stopCamera()
+          }
+        }
+        reader.readAsDataURL(file)
+      } else {
+        setUploadResultMessage("❌ Please drop an image file.")
+      }
+    }
+  }
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          if (event.target && typeof event.target.result === "string") {
+            setPreview(event.target.result)
+            setIsCaptured(true)
+            stopCamera()
+          }
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
@@ -137,14 +199,36 @@ export default function FacialAuthApp() {
               className="w-full"
             />
 
-            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border-2 border-dashed border-gray-300">
+            <div
+              ref={dropZoneRef}
+              className={`relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border-2 ${
+                isDragging ? "border-green-500 border-dashed" : "border-dashed border-gray-300"
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
               {preview ? (
-                <img src={preview} alt="Captured" className="w-full h-full object-cover" />
+                <img src={preview || "/placeholder.svg"} alt="Captured" className="w-full h-full object-cover" />
               ) : (
-                <video ref={videoRef} autoPlay className="w-full h-full object-cover" />
+                <>
+                  <video ref={videoRef} autoPlay className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 text-white pointer-events-none">
+                    <p className="text-center p-4">Drag & drop an image here or use the camera</p>
+                  </div>
+                </>
               )}
               <canvas ref={canvasRef} className="hidden" />
             </div>
+
+            <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" id="file-upload" />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer text-center text-sm text-blue-600 hover:text-blue-800"
+            >
+              Or select a file from your device
+            </label>
 
             {!isCaptured ? (
               <Button type="button" onClick={captureImage} className="w-full">
@@ -176,4 +260,3 @@ export default function FacialAuthApp() {
     </div>
   )
 }
-
