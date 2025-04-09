@@ -10,21 +10,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { PlusCircle, MessageSquare } from "lucide-react"
-
-type JiraIssue = {
-  id: string
-  title: string
-  description: string
-  status: "TO DO" | "IN PROGRESS" | "DONE"
-  assignee?: string
-}
+import { PlusCircle, MessageSquare, Save, RefreshCw } from "lucide-react"
+import { saveJiraBoardData, getJiraBoardData, type JiraIssue } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export const dynamic = "force-dynamic"
 
 function JiraBoard() {
   const searchParams = useSearchParams()
-  const userId = `${searchParams.get("firstName")}.${searchParams.get("lastName")}`
+  const firstName = searchParams.get("firstName") || ""
+  const lastName = searchParams.get("lastName") || ""
+  const userId = `${firstName}.${lastName}`
 
   const [issues, setIssues] = useState<JiraIssue[]>([])
   const [newIssueTitle, setNewIssueTitle] = useState("")
@@ -35,36 +31,80 @@ function JiraBoard() {
   const [comment, setComment] = useState("")
   const [comments, setComments] = useState<Record<string, string[]>>({})
   const [draggedIssue, setDraggedIssue] = useState<JiraIssue | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const todoColumnRef = useRef<HTMLDivElement>(null)
   const inProgressColumnRef = useRef<HTMLDivElement>(null)
   const doneColumnRef = useRef<HTMLDivElement>(null)
+  const { toast } = useToast()
 
+  // Load data from DynamoDB on initial load
   useEffect(() => {
-    const stored = localStorage.getItem(`jira-issues-${userId}`)
-    const storedComments = localStorage.getItem(`jira-comments-${userId}`)
-
-    if (stored) {
+    async function loadData() {
+      setIsLoading(true)
       try {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setIssues(parsed)
-          return
+        // Try to get data from DynamoDB first
+        const data = await getJiraBoardData(userId)
+
+        if (data) {
+          // Combine all items into a single issues array
+          const allIssues = [...data.todoItems, ...data.inProgressItems, ...data.doneItems]
+          setIssues(allIssues)
+
+          // Also try to load comments from localStorage
+          const storedComments = localStorage.getItem(`jira-comments-${userId}`)
+          if (storedComments) {
+            try {
+              setComments(JSON.parse(storedComments))
+            } catch (err) {
+              console.error("Error parsing comments from localStorage", err)
+            }
+          }
+        } else {
+          // If no data in DynamoDB, try localStorage
+          const stored = localStorage.getItem(`jira-issues-${userId}`)
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setIssues(parsed)
+              } else {
+                setDefaultIssues()
+              }
+            } catch (err) {
+              console.error("Error parsing issues from localStorage", err)
+              setDefaultIssues()
+            }
+          } else {
+            setDefaultIssues()
+          }
+
+          // Try to load comments from localStorage
+          const storedComments = localStorage.getItem(`jira-comments-${userId}`)
+          if (storedComments) {
+            try {
+              setComments(JSON.parse(storedComments))
+            } catch (err) {
+              console.error("Error parsing comments from localStorage", err)
+            }
+          }
         }
-      } catch (err) {
-        console.error("Error parsing issues from localStorage", err)
+      } catch (error) {
+        console.error("Error loading data:", error)
+        setDefaultIssues()
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    if (storedComments) {
-      try {
-        const parsed = JSON.parse(storedComments)
-        setComments(parsed)
-      } catch (err) {
-        console.error("Error parsing comments from localStorage", err)
-      }
+    if (userId) {
+      loadData()
     }
+  }, [userId])
 
+  // Set default issues if no data is available
+  const setDefaultIssues = () => {
     const predefined: JiraIssue[] = [
       { id: "SCRUM-1", title: "Check-in at front desk", description: "Verify identity at reception", status: "TO DO" },
       {
@@ -87,13 +127,16 @@ function JiraBoard() {
       },
     ]
     setIssues(predefined)
-    localStorage.setItem(`jira-issues-${userId}`, JSON.stringify(predefined))
-  }, [userId])
+  }
 
+  // Save to localStorage whenever issues change
   useEffect(() => {
-    localStorage.setItem(`jira-issues-${userId}`, JSON.stringify(issues))
+    if (issues.length > 0) {
+      localStorage.setItem(`jira-issues-${userId}`, JSON.stringify(issues))
+    }
   }, [issues, userId])
 
+  // Save comments to localStorage
   useEffect(() => {
     localStorage.setItem(`jira-comments-${userId}`, JSON.stringify(comments))
   }, [comments, userId])
@@ -154,13 +197,114 @@ function JiraBoard() {
     setCommentDialogOpen(true)
   }
 
+  // Save data to DynamoDB
+  const saveToDatabase = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User ID is required to save data",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const todoItems = issues.filter((issue) => issue.status === "TO DO")
+      const inProgressItems = issues.filter((issue) => issue.status === "IN PROGRESS")
+      const doneItems = issues.filter((issue) => issue.status === "DONE")
+
+      const success = await saveJiraBoardData(userId, todoItems, inProgressItems, doneItems)
+
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Your Jira board has been saved to the database",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save your Jira board",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error saving to database:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Refresh data from DynamoDB
+  const refreshFromDatabase = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User ID is required to load data",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const data = await getJiraBoardData(userId)
+
+      if (data) {
+        // Combine all items into a single issues array
+        const allIssues = [...data.todoItems, ...data.inProgressItems, ...data.doneItems]
+        setIssues(allIssues)
+
+        toast({
+          title: "Success",
+          description: "Your Jira board has been loaded from the database",
+        })
+      } else {
+        toast({
+          title: "Info",
+          description: "No data found in the database",
+        })
+      }
+    } catch (error) {
+      console.error("Error loading from database:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load your Jira board",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 md:p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-xl md:text-2xl font-bold">Hello {userId}, your Jira Board</h1>
-        <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <PlusCircle className="mr-2 h-4 w-4" /> Create Issue
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={saveToDatabase} disabled={isSaving} className="bg-green-600 hover:bg-green-700">
+            <Save className="mr-2 h-4 w-4" /> {isSaving ? "Saving..." : "Save to Database"}
+          </Button>
+          <Button onClick={refreshFromDatabase} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+          </Button>
+          <Button onClick={() => setIsDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
+            <PlusCircle className="mr-2 h-4 w-4" /> Create Issue
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
